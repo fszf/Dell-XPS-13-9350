@@ -26,7 +26,6 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/testing/${_srcname}-${rcve
         'change-default-console-loglevel.patch'
         '0001-bcm4350.patch'
         '0002-inteldc.patch')
-
 sha256sums=('da077d96da730c3c4d313d3faad8464c4ad23231f181bf2a88a8a3ed074f3706'
             'SKIP'
             '19e4a01d995d90aac99ced702bfc99b2bf8a21fd657dd70974698f2b6a799918'
@@ -36,7 +35,8 @@ sha256sums=('da077d96da730c3c4d313d3faad8464c4ad23231f181bf2a88a8a3ed074f3706'
             'f0d90e756f14533ee67afda280500511a62465b4f76adcc5effa95a40045179c'
             '1256b241cd477b265a3c2d64bdc19ffe3c9bbcee82ea3994c590c2c76e767d99'
             '7a3763a7dcdfada7edda636860ee125e270a9542d70c496edf9850c02a25baad'
-            'caee2713e0453c098cf2c50118f34827e22cbd3d7d75398a56d58d918f084deb')
+            '7bf515ca1fc1c432999f7c5227d77d7c0429eaabbc48bc887383119bbeca2dd4'
+            '1fe168eef8486b90fd1624b06d89859e366e7d3ca2cd2320fd74b91ef924639b')
 validpgpkeys=(
               'ABAF11C65A2970B130ABE3C479BE3E4300411886' # Linus Torvalds
               '647F28654894E3BD457199BE38DBBDC86092693E' # Greg Kroah-Hartman
@@ -61,6 +61,7 @@ prepare() {
   patch -p1 -i "${srcdir}/0002-inteldc.patch"
 
   patch -p1 -i "${srcdir}/0001-bcm4350.patch"
+  patch -p1 -i "${srcdir}/0003-audio.patch"
   
 
   if [ "${CARCH}" = "x86_64" ]; then
@@ -81,11 +82,11 @@ prepare() {
   sed -i '2iexit 0' scripts/depmod.sh
 
   # get kernel version
-  make prepare
+#  make prepare
 
   #comment above line and uncomment below two if you have modprobed-db installed
-#  sudo /usr/bin/modprobed-db recall  
-#  make localmodconfig   
+  sudo /usr/bin/modprobed-db recall  
+  make localmodconfig   
 
   # load configuration
   # Configure the kernel. Replace the line below with one of your choice.

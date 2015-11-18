@@ -120,24 +120,6 @@ index 3f682a1..e30c9a6 100644
  				enum csr_state state;
  				/* TODO: wait for a completion event or
  				 * similar here instead of busy
-@@ -669,14 +669,10 @@ static void skl_set_power_well(struct drm_i915_private *dev_priv,
- 				 */
- 				wait_for((state = intel_csr_load_status_get(dev_priv)) !=
- 						FW_UNINITIALIZED, 1000);
--				if (state != FW_LOADED)
-+				if (state != FW_LOADED) {
- 					DRM_ERROR("CSR firmware not ready (%d)\n",
--							state);
--				else
--					if (SKL_ENABLE_DC6(dev))
--						skl_enable_dc6(dev_priv);
--					else
--						gen9_enable_dc5(dev_priv);
-+						  state);
-+				}
- 			}
- 		}
- 	}
 @@ -752,6 +748,34 @@ static void skl_power_well_disable(struct drm_i915_private *dev_priv,
  	skl_set_power_well(dev_priv, power_well, false);
  }
