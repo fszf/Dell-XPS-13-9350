@@ -8,4 +8,4 @@ Recommended: Use modprobed-db and edit pkgbuild to utilize it.  Will shave down 
 
 Patches included:
 2-patch fix for [drm:intel_dp_aux_ch [i915]] *ERROR* dp aux hw did not signal timeout (has irq:1)!
-
+3-white noise fix where you hear status after suspend and resume.  this fix will merge into 4.4-rc3 kernel
