@@ -1,3 +1,4 @@
+.gitignore
 *.sign
 *.tar.xz
 *.xz
