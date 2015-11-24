@@ -24,7 +24,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/testing/${_srcname}-${rcve
         # standard config files for mkinitcpio ramdisk
         'linux.preset'
         'change-default-console-loglevel.patch'
-        '0002-inteldc.patch')
+        '0002-inteldc.patch'
+        '0003-whitenoise.patch')
 sha256sums=('ea390fff78a62298619131ed02e1fe86c14a8f30bff99d021d558a36f746ff17'
             'SKIP'
             '3870efdb5dfdbcb17d5a233e8e9c69156609825a3fb344b8f0fcecb92646360d'
@@ -56,6 +57,7 @@ prepare() {
   patch -p1 -i "${srcdir}/change-default-console-loglevel.patch"
   
   patch -p1 -i "${srcdir}/0002-inteldc.patch"
+  patch -p1 -i "${srcdir}/0003-whitenoise.patch"
 
   
 
@@ -77,11 +79,11 @@ prepare() {
   sed -i '2iexit 0' scripts/depmod.sh
 
   # get kernel version
-#  make prepare
+  make prepare
 
   #comment above line and uncomment below two if you have modprobed-db installed
-  sudo /usr/bin/modprobed-db recall  
-  make localmodconfig   
+#  sudo /usr/bin/modprobed-db recall  
+#  make localmodconfig   
 
   # load configuration
   # Configure the kernel. Replace the line below with one of your choice.
