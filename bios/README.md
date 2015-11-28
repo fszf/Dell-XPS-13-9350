@@ -1,4 +1,4 @@
-===Instructions
+###Instructions
 1. I place these in /boot
 2. Reboot
 3. Hold F12
