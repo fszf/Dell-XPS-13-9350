@@ -7,3 +7,4 @@
 6. Point to the right exe file to update
 
 **Note**: Ensure your AC is plugged in as it will require it to perform a flash!
+Also, please verify checksums from the official Dell site.  These files are here for archiving purposes.
