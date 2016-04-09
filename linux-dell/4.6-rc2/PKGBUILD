@@ -24,16 +24,16 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/testing/${_srcname}-${rcve
         # standard config files for mkinitcpio ramdisk
         'linux.preset'
         'change-default-console-loglevel.patch'
-        '0002-inteldc.patch')
-sha256sums=('0125a3fc6905a695c509efe5dc74f6235ab712a6a1316fb566dac51c4c6d0d10'
+        '0004-dsmethod.patch')
+sha256sums=('99751bca2915f6950b69aad6e214118523c4c19b3dfd081fb0f5cd1c749a307e'
             'SKIP'
-            'e2a1f4198c0f56b0fb9cdf7056a3efb5c99d117e6c55341b69f8e77c01bea450'
+            '386e1945510a0635cde0598d49b6624c8753b3bab1c9bf6fa8ce7efb88d1f289'
             'SKIP'
             '6921399a0e304f6c64cff17226ce3f20ebe8194f14ebcd318989f2515d8248ad'
             'c3be602e0ce609b5fe5af2e631b01c8fba376a0c434206deca3d101b62685262'
             'f0d90e756f14533ee67afda280500511a62465b4f76adcc5effa95a40045179c'
             '1256b241cd477b265a3c2d64bdc19ffe3c9bbcee82ea3994c590c2c76e767d99'
-            'ce9a449e93f10ebbcfca505c8e0d9d27e1a320ef4a25577faabd9a9fbb2510fa')
+            'da0f69bb376a1f183d9b0549d30b0ed364ba8955c6269054bac84c777e240f6d')
 validpgpkeys=(
               'ABAF11C65A2970B130ABE3C479BE3E4300411886' # Linus Torvalds
               '647F28654894E3BD457199BE38DBBDC86092693E' # Greg Kroah-Hartman
@@ -55,9 +55,9 @@ prepare() {
   # (relevant patch sent upstream: https://lkml.org/lkml/2011/7/26/227)
   patch -p1 -i "${srcdir}/change-default-console-loglevel.patch"
   
-  patch -p1 -i "${srcdir}/0002-inteldc.patch"
+  #patch -p1 -i "${srcdir}/0002-inteldc.patch"
 
-  
+  patch -p1 -i "${srcdir}/0004-dsmethod.patch"
 
   if [ "${CARCH}" = "x86_64" ]; then
     cat "${srcdir}/config.x86_64" > ./.config
@@ -77,11 +77,11 @@ prepare() {
   sed -i '2iexit 0' scripts/depmod.sh
 
   # get kernel version
-  make prepare
+  #make prepare
 
   #comment above line and uncomment below two if you have modprobed-db installed
-#  sudo /usr/bin/modprobed-db recall  
-#  make localmodconfig   
+  sudo /usr/bin/modprobed-db recall  
+  make localmodconfig   
 
   # load configuration
   # Configure the kernel. Replace the line below with one of your choice.

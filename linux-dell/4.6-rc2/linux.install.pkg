@@ -2,7 +2,7 @@
 # arg 2:  the old package version
 
 KERNEL_NAME=-dell
-KERNEL_VERSION=4.4.0-2-dell
+KERNEL_VERSION=4.6.0-1-dell
 
 post_install () {
   # updating module dependencies
