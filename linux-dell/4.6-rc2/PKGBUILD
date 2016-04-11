@@ -24,7 +24,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/testing/${_srcname}-${rcve
         # standard config files for mkinitcpio ramdisk
         'linux.preset'
         'change-default-console-loglevel.patch'
-        '0004-dsmethod.patch')
+        '0004-dsmethod.patch'
+        '0005-intelfix.patch')
 sha256sums=('99751bca2915f6950b69aad6e214118523c4c19b3dfd081fb0f5cd1c749a307e'
             'SKIP'
             '386e1945510a0635cde0598d49b6624c8753b3bab1c9bf6fa8ce7efb88d1f289'
@@ -33,7 +34,8 @@ sha256sums=('99751bca2915f6950b69aad6e214118523c4c19b3dfd081fb0f5cd1c749a307e'
             'c3be602e0ce609b5fe5af2e631b01c8fba376a0c434206deca3d101b62685262'
             'f0d90e756f14533ee67afda280500511a62465b4f76adcc5effa95a40045179c'
             '1256b241cd477b265a3c2d64bdc19ffe3c9bbcee82ea3994c590c2c76e767d99'
-            'da0f69bb376a1f183d9b0549d30b0ed364ba8955c6269054bac84c777e240f6d')
+            'da0f69bb376a1f183d9b0549d30b0ed364ba8955c6269054bac84c777e240f6d'
+            '97c195a96b0f12350efe1200fe79d80bd3a0c662f379609fc4f573b64067472b')
 validpgpkeys=(
               'ABAF11C65A2970B130ABE3C479BE3E4300411886' # Linus Torvalds
               '647F28654894E3BD457199BE38DBBDC86092693E' # Greg Kroah-Hartman
@@ -55,9 +57,8 @@ prepare() {
   # (relevant patch sent upstream: https://lkml.org/lkml/2011/7/26/227)
   patch -p1 -i "${srcdir}/change-default-console-loglevel.patch"
   
-  #patch -p1 -i "${srcdir}/0002-inteldc.patch"
-
   patch -p1 -i "${srcdir}/0004-dsmethod.patch"
+  patch -p1 -i "${srcdir}/0005-intelfix.patch"
 
   if [ "${CARCH}" = "x86_64" ]; then
     cat "${srcdir}/config.x86_64" > ./.config
