@@ -8,7 +8,7 @@ I've been noticing some flickering going on and decided to use this patch
 [patch](https://patchwork.freedesktop.org/patch/66697i/)
 
 So far I haven't experienced the flicker but I will update as I go.
-
+edit: This doesn't fix it :(
 
 ##Misc notes
 Please consider editing the pkgbuild to enable modprobed-db.  
