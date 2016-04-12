@@ -2,7 +2,7 @@
 ## dsmethod.patch
 This patch fixes the WD15 dock WOO HOO
 
-## all other patches from (Arch Forums)[https://bbs.archlinux.org/viewtopic.php?pid=1619336#p1619336]
+## all other patches from [Arch Forums](https://bbs.archlinux.org/viewtopic.php?pid=1619336#p1619336)
 
 
 ##Misc notes
