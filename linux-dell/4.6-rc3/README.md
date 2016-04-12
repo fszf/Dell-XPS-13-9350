@@ -12,4 +12,9 @@ https://aur.archlinux.org/packages/modprobed-db
 And read the archwiki:
 https://wiki.archlinux.org/index.php/Modprobed-db
 
-Just remember to plug in all your devices and run it. This will speed up your compile time down to 8 minutes.,
+Just remember to plug in all your devices and run it. This will speed up your compile time down to 8 minutes.
+
+##Compile
+makepkg -s
+pacman -U <package name>
+
