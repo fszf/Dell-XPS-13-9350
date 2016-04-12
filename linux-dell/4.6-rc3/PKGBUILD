@@ -29,7 +29,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/testing/${_srcname}-${rcve
         '0005-fbc1.patch'
         '0006-fbc2.patch'
         '0007-fbc3.patch'
-        '0008-fbc4.patch')
+        '0008-fbc4.patch'
+        'enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch')
 sha256sums=('bb230603e366e6c404f44e27f0a9bd4cd7e2b1dfdf37db60e7fb96d9e8821bee'
             'SKIP'
             '45bc4f50c98d6dfea3c802f89cbae79553c308f3f2fc802d8fd9f84cb7f9f808'
@@ -43,7 +44,8 @@ sha256sums=('bb230603e366e6c404f44e27f0a9bd4cd7e2b1dfdf37db60e7fb96d9e8821bee'
             'df909900b7fa9624a695739fc1ee41a3ccdb82490a42f80ede1266ebb77938fc'
             'e2b92d55a1498aeacba722880c676ce6fc5cb507c99e9fd0d47000f31e6c88fc'
             'df060c10396dc14c0aa8ffc3b6af2fdc11241a3e75189266c69747bfbf3059a8'
-            'efc2b6353f02d89f06ab8a0e8f9ca11bffbf2ef6e66e5757d228a7916f66804b')
+            'efc2b6353f02d89f06ab8a0e8f9ca11bffbf2ef6e66e5757d228a7916f66804b'
+            'f479a5ca6abe4d50ca4c09e6e83a027369fcd3efff8d5ce60f0699d8fa47beb8')
 validpgpkeys=(
               'ABAF11C65A2970B130ABE3C479BE3E4300411886' # Linus Torvalds
               '647F28654894E3BD457199BE38DBBDC86092693E' # Greg Kroah-Hartman
@@ -71,7 +73,7 @@ prepare() {
   patch -p1 -i "${srcdir}/0006-fbc2.patch"
   patch -p1 -i "${srcdir}/0007-fbc3.patch"
   patch -p1 -i "${srcdir}/0008-fbc4.patch"
-
+  patch -p1 -i "${srcdir}/enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch"
   if [ "${CARCH}" = "x86_64" ]; then
     cat "${srcdir}/config.x86_64" > ./.config
   else
