@@ -1,7 +1,8 @@
-# linux 4.6-rc2
+# linux 4.6-rc3
 ## dsmethod.patch
 This patch fixes the WD15 dock WOO HOO
 
+## all other patches from (Arch Forums)[https://bbs.archlinux.org/viewtopic.php?pid=1619336#p1619336]
 
 
 ##Misc notes

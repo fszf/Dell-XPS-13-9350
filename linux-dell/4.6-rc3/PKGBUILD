@@ -92,11 +92,11 @@ prepare() {
   sed -i '2iexit 0' scripts/depmod.sh
 
   # get kernel version
-   make prepare
+   #make prepare
 
   #comment above line and uncomment below two if you have modprobed-db installed
- # sudo /usr/bin/modprobed-db recall  
- # make localmodconfig   
+  sudo /usr/bin/modprobed-db recall  
+  make localmodconfig   
 
   # load configuration
   # Configure the kernel. Replace the line below with one of your choice.
