@@ -24,7 +24,12 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/testing/${_srcname}-${rcve
         # standard config files for mkinitcpio ramdisk
         'linux.preset'
         'change-default-console-loglevel.patch'
-        '0004-dsmethod.patch')
+        '0002-intel1.patch'
+        '0004-dsmethod.patch'
+        '0005-fbc1.patch'
+        '0006-fbc2.patch'
+        '0007-fbc3.patch'
+        '0008-fbc4.patch')
 sha256sums=('bb230603e366e6c404f44e27f0a9bd4cd7e2b1dfdf37db60e7fb96d9e8821bee'
             'SKIP'
             '45bc4f50c98d6dfea3c802f89cbae79553c308f3f2fc802d8fd9f84cb7f9f808'
@@ -33,7 +38,12 @@ sha256sums=('bb230603e366e6c404f44e27f0a9bd4cd7e2b1dfdf37db60e7fb96d9e8821bee'
             'c3be602e0ce609b5fe5af2e631b01c8fba376a0c434206deca3d101b62685262'
             'f0d90e756f14533ee67afda280500511a62465b4f76adcc5effa95a40045179c'
             '1256b241cd477b265a3c2d64bdc19ffe3c9bbcee82ea3994c590c2c76e767d99'
-            'da0f69bb376a1f183d9b0549d30b0ed364ba8955c6269054bac84c777e240f6d')
+            '03ccd05eda685cd850ad35a710ec0daabc4d581d7b6b00ae57acedb6ea9e9a26'
+            'da0f69bb376a1f183d9b0549d30b0ed364ba8955c6269054bac84c777e240f6d'
+            'df909900b7fa9624a695739fc1ee41a3ccdb82490a42f80ede1266ebb77938fc'
+            'e2b92d55a1498aeacba722880c676ce6fc5cb507c99e9fd0d47000f31e6c88fc'
+            'df060c10396dc14c0aa8ffc3b6af2fdc11241a3e75189266c69747bfbf3059a8'
+            'efc2b6353f02d89f06ab8a0e8f9ca11bffbf2ef6e66e5757d228a7916f66804b')
 validpgpkeys=(
               'ABAF11C65A2970B130ABE3C479BE3E4300411886' # Linus Torvalds
               '647F28654894E3BD457199BE38DBBDC86092693E' # Greg Kroah-Hartman
@@ -55,7 +65,12 @@ prepare() {
   # (relevant patch sent upstream: https://lkml.org/lkml/2011/7/26/227)
   patch -p1 -i "${srcdir}/change-default-console-loglevel.patch"
   
+  patch -p1 -i "${srcdir}/0002-intel1.patch"
   patch -p1 -i "${srcdir}/0004-dsmethod.patch"
+  patch -p1 -i "${srcdir}/0005-fbc1.patch"
+  patch -p1 -i "${srcdir}/0006-fbc2.patch"
+  patch -p1 -i "${srcdir}/0007-fbc3.patch"
+  patch -p1 -i "${srcdir}/0008-fbc4.patch"
 
   if [ "${CARCH}" = "x86_64" ]; then
     cat "${srcdir}/config.x86_64" > ./.config
@@ -78,8 +93,8 @@ prepare() {
    make prepare
 
   #comment above line and uncomment below two if you have modprobed-db installed
-#  sudo /usr/bin/modprobed-db recall  
-#  make localmodconfig   
+ # sudo /usr/bin/modprobed-db recall  
+ # make localmodconfig   
 
   # load configuration
   # Configure the kernel. Replace the line below with one of your choice.

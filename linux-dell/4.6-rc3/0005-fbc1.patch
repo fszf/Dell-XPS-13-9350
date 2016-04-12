@@ -1,0 +1,34 @@
+---
+ drivers/gpu/drm/i915/intel_fbc.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_fbc.c b/drivers/gpu/drm/i915/intel_fbc.c
+index 2e571f5..b8ba79c 100644
+--- a/drivers/gpu/drm/i915/intel_fbc.c
++++ b/drivers/gpu/drm/i915/intel_fbc.c
+@@ -996,13 +996,13 @@ void intel_fbc_flush(struct drm_i915_private *dev_priv,
+ 	if (!fbc_supported(dev_priv))
+ 		return;
+ 
+-	if (origin == ORIGIN_GTT || origin == ORIGIN_FLIP)
+-		return;
+-
+ 	mutex_lock(&fbc->lock);
+ 
+ 	fbc->busy_bits &= ~frontbuffer_bits;
+ 
++	if (origin == ORIGIN_GTT || origin == ORIGIN_FLIP)
++		goto out;
++
+ 	if (!fbc->busy_bits && fbc->enabled &&
+ 	    (frontbuffer_bits & intel_fbc_get_frontbuffer_bit(fbc))) {
+ 		if (fbc->active)
+@@ -1011,6 +1011,7 @@ void intel_fbc_flush(struct drm_i915_private *dev_priv,
+ 			__intel_fbc_post_update(fbc->crtc);
+ 	}
+ 
++out:
+ 	mutex_unlock(&fbc->lock);
+ }
+ 
+-- 

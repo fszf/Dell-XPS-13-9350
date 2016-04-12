@@ -1,0 +1,20 @@
+---
+ drivers/gpu/drm/i915/i915_drv.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index d3ebb2fa46fa..c51f92b0335e 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -2624,8 +2624,8 @@ struct drm_i915_cmd_table {
+ 
+ /* WaRsDisableCoarsePowerGating:skl,bxt */
+ #define NEEDS_WaRsDisableCoarsePowerGating(dev) (IS_BXT_REVID(dev, 0, BXT_REVID_A1) || \
+-						 ((IS_SKL_GT3(dev) || IS_SKL_GT4(dev)) && \
+-						  IS_SKL_REVID(dev, 0, SKL_REVID_F0)))
++						 IS_SKL_GT3(dev) || IS_SKL_GT4(dev))
++
+ /*
+  * dp aux and gmbus irq on gen4 seems to be able to generate legacy interrupts
+  * even when in MSI mode. This results in spurious interrupt warnings if the
+-- 
