@@ -30,6 +30,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/testing/${_srcname}-${rcve
         '0006-fbc2.patch'
         '0007-fbc3.patch'
         '0008-fbc4.patch'
+        'v2-drm-i915-Disable-fast-link-training-if-DP-config-changes.patch'
         'enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch')
 sha256sums=('bb230603e366e6c404f44e27f0a9bd4cd7e2b1dfdf37db60e7fb96d9e8821bee'
             'SKIP'
@@ -45,6 +46,7 @@ sha256sums=('bb230603e366e6c404f44e27f0a9bd4cd7e2b1dfdf37db60e7fb96d9e8821bee'
             'e2b92d55a1498aeacba722880c676ce6fc5cb507c99e9fd0d47000f31e6c88fc'
             'df060c10396dc14c0aa8ffc3b6af2fdc11241a3e75189266c69747bfbf3059a8'
             'efc2b6353f02d89f06ab8a0e8f9ca11bffbf2ef6e66e5757d228a7916f66804b'
+            'bc31b81f450cba478403bec3cf3bc9319da71618207fc00768aefa2c6f13ff1e'
             'f479a5ca6abe4d50ca4c09e6e83a027369fcd3efff8d5ce60f0699d8fa47beb8')
 validpgpkeys=(
               'ABAF11C65A2970B130ABE3C479BE3E4300411886' # Linus Torvalds
@@ -67,13 +69,22 @@ prepare() {
   # (relevant patch sent upstream: https://lkml.org/lkml/2011/7/26/227)
   patch -p1 -i "${srcdir}/change-default-console-loglevel.patch"
   
-  patch -p1 -i "${srcdir}/0002-intel1.patch"
+  #Patches to fix i915 flickering
+  #patch -p1 -i "${srcdir}/0002-intel1.patch"
+  patch -p1 -i "${srcdir}/v2-drm-i915-Disable-fast-link-training-if-DP-config-changes.patch"
+
+  #USB-C hotplug fix
   patch -p1 -i "${srcdir}/0004-dsmethod.patch"
+  
+  #Frame buffer compression patches
   patch -p1 -i "${srcdir}/0005-fbc1.patch"
   patch -p1 -i "${srcdir}/0006-fbc2.patch"
   patch -p1 -i "${srcdir}/0007-fbc3.patch"
   patch -p1 -i "${srcdir}/0008-fbc4.patch"
+  
+  #optimizing skylake compiling
   patch -p1 -i "${srcdir}/enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch"
+  
   if [ "${CARCH}" = "x86_64" ]; then
     cat "${srcdir}/config.x86_64" > ./.config
   else
@@ -92,11 +103,11 @@ prepare() {
   sed -i '2iexit 0' scripts/depmod.sh
 
   # get kernel version
-   make prepare
+  # make prepare
 
   #comment above line and uncomment below two if you have modprobed-db installed
-  #sudo /usr/bin/modprobed-db recall  
-  #make localmodconfig   
+  sudo /usr/bin/modprobed-db recall  
+  make localmodconfig   
 
   # load configuration
   # Configure the kernel. Replace the line below with one of your choice.

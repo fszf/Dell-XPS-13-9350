@@ -1,0 +1,51 @@
+From 5fa836a9d85975c5f0f1219669523c1f0ac64349 Mon Sep 17 00:00:00 2001
+From: Mika Kahola <mika.kahola@intel.com>
+Date: Wed, 29 Apr 2015 09:17:40 +0300
+Subject: drm/i915: DP link training optimization
+
+This patch adds DP link training optimization by reusing the
+previously trained values.
+
+v2:
+- rebase
+
+V3:
+- rebase
+
+V4:
+- when HPD long pulse is received, the flag is cleared
+  that indicates if DP link training is required or not
+  (based on Sivakumar's comment)
+
+Signed-off-by: Mika Kahola <mika.kahola@intel.com>
+Reviewed-by: Sivakumar Thulasimani <sivakumar.thulasimani@intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+ drivers/gpu/drm/i915/intel_dp.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
+index 1af97ad..7c3dbd4 100644
+--- a/drivers/gpu/drm/i915/intel_dp.c
++++ b/drivers/gpu/drm/i915/intel_dp.c
+@@ -3794,7 +3794,7 @@ intel_dp_complete_link_train(struct intel_dp *intel_dp)
+ 	intel_dp->DP = DP;
+ 
+ 	if (channel_eq) {
+-		intel_dp->train_set_valid = is_edp(intel_dp);
++		intel_dp->train_set_valid = true;
+ 		DRM_DEBUG_KMS("Channel EQ done. DP Training successful\n");
+ 	}
+ }
+@@ -4858,6 +4858,8 @@ intel_dp_hpd_pulse(struct intel_digital_port *intel_dig_port, bool long_hpd)
+ 	intel_display_power_get(dev_priv, power_domain);
+ 
+ 	if (long_hpd) {
++		/* indicate that we need to restart link training */
++		intel_dp->train_set_valid = false;
+ 
+ 		if (HAS_PCH_SPLIT(dev)) {
+ 			if (!ibx_digital_port_connected(dev_priv, intel_dig_port))
+-- 
+cgit v0.12
+
