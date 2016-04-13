@@ -1,0 +1,19 @@
+---
+ drivers/gpu/drm/i915/intel_fbc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i915/intel_fbc.c b/drivers/gpu/drm/i915/intel_fbc.c
+index 718ac38..614f9e5 100644
+--- a/drivers/gpu/drm/i915/intel_fbc.c
++++ b/drivers/gpu/drm/i915/intel_fbc.c
+@@ -1270,7 +1270,8 @@ void intel_fbc_init(struct drm_i915_private *dev_priv)
+ 	 * know what's going on. */
+ 	if (i915.enable_fbc < 0) {
+ 		i915.enable_fbc = IS_HASWELL(dev_priv) ||
+-				  IS_BROADWELL(dev_priv);
++				  IS_BROADWELL(dev_priv) ||
++				  INTEL_INFO(dev_priv)->gen >= 9;
+ 		DRM_DEBUG_KMS("Sanitized enable_fbc value: %d\n",
+ 			      i915.enable_fbc);
+ 	}
+-- 

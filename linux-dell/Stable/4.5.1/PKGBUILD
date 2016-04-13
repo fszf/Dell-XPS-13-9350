@@ -3,10 +3,10 @@
 # Maintainer: Thomas Baechler <thomas@archlinux.org>
 
 pkgbase=linux-dell               # Build stock -ARCH kernel
-_srcname=linux-4.6
-pkgver=4.6
+_srcname=linux-4.5.1
+pkgver=4.5.1
 pkgrel=1
-rcver=rc3
+
 
 arch=('i686' 'x86_64')
 url="http://www.kernel.org/"
@@ -15,10 +15,10 @@ makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc')
 
 
 options=('!strip')
-source=("https://www.kernel.org/pub/linux/kernel/v4.x/testing/${_srcname}-${rcver}.tar.xz"
-        "https://www.kernel.org/pub/linux/kernel/v4.x/testing/${_srcname}-${rcver}.tar.sign"
-        "https://www.kernel.org/pub/linux/kernel/v4.x/testing/patch-${pkgver}-${rcver}.xz"
-        "https://www.kernel.org/pub/linux/kernel/v4.x/testing/patch-${pkgver}-${rcver}.sign"
+source=("https://www.kernel.org/pub/linux/kernel/v4.x/${_srcname}.tar.xz"
+        "https://www.kernel.org/pub/linux/kernel/v4.x/${_srcname}.tar.sign"
+        "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
+        "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.sign"
         # the main kernel config files
         'config' 'config.x86_64'
         # standard config files for mkinitcpio ramdisk
@@ -31,9 +31,9 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/testing/${_srcname}-${rcve
         '0007-fbc3.patch'
         '0008-fbc4.patch'
         'enable_additional_cpu_optimizations_for_gcc_v4.9+_kernel_v3.15+.patch')
-sha256sums=('bb230603e366e6c404f44e27f0a9bd4cd7e2b1dfdf37db60e7fb96d9e8821bee'
+sha256sums=('f180afeb4298ea717b3ccea1f65d0e68ca29501272bf3f4254c1c3c2cf9dd860'
             'SKIP'
-            '45bc4f50c98d6dfea3c802f89cbae79553c308f3f2fc802d8fd9f84cb7f9f808'
+            '060ad091ebfa2b63d62e86beaf68c3a5d4638c506c3ac941c1825ba756e830b1'
             'SKIP'
             '6921399a0e304f6c64cff17226ce3f20ebe8194f14ebcd318989f2515d8248ad'
             'c3be602e0ce609b5fe5af2e631b01c8fba376a0c434206deca3d101b62685262'
@@ -54,7 +54,7 @@ validpgpkeys=(
 _kernelname=${pkgbase#linux}
 
 prepare() {
-  cd "${srcdir}/${_srcname}-${rcver}"
+  cd "${srcdir}/${_srcname}"
 
   # add upstream patch
 #  patch -p1 -i "${srcdir}/patch-${pkgver}-${rcver}"
@@ -92,7 +92,7 @@ prepare() {
   sed -i '2iexit 0' scripts/depmod.sh
 
   # get kernel version
-   #make prepare
+  # make prepare
 
   #comment above line and uncomment below two if you have modprobed-db installed
   sudo /usr/bin/modprobed-db recall  
@@ -111,7 +111,7 @@ prepare() {
 }
 
 build() {
-  cd "${srcdir}/${_srcname}-${rcver}"
+  cd "${srcdir}/${_srcname}"
 
   make ${MAKEFLAGS} LOCALVERSION= bzImage modules
 }
@@ -124,7 +124,7 @@ _package() {
   backup=("etc/mkinitcpio.d/${pkgbase}.preset")
   install=linux.install
 
-  cd "${srcdir}/${_srcname}-${rcver}"
+  cd "${srcdir}/${_srcname}"
 
   KARCH=x86
 
@@ -180,7 +180,7 @@ _package-headers() {
 
   install -dm755 "${pkgdir}/usr/lib/modules/${_kernver}"
 
-  cd "${srcdir}/${_srcname}-${rcver}"
+  cd "${srcdir}/${_srcname}"
   install -D -m644 Makefile \
     "${pkgdir}/usr/lib/modules/${_kernver}/build/Makefile"
   install -D -m644 kernel/Makefile \
@@ -295,7 +295,7 @@ _package-headers() {
 _package-docs() {
   pkgdesc="Kernel hackers manual - HTML documentation that comes with the ${pkgbase/linux/Linux} kernel"
 
-  cd "${srcdir}/${_srcname}-${rcver}"
+  cd "${srcdir}/${_srcname}"
 
   mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build"
   cp -al Documentation "${pkgdir}/usr/lib/modules/${_kernver}/build"

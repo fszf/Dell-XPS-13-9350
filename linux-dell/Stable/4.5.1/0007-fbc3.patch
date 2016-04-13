@@ -1,0 +1,243 @@
+---
+ drivers/gpu/drm/i915/i915_drv.h          |  8 ++++++++
+ drivers/gpu/drm/i915/i915_gem.c          | 19 +++++++++++-------
+ drivers/gpu/drm/i915/intel_display.c     |  1 +
+ drivers/gpu/drm/i915/intel_drv.h         |  3 +++
+ drivers/gpu/drm/i915/intel_fbc.c         | 33 ++++++++++++++++++++++++++++++++
+ drivers/gpu/drm/i915/intel_frontbuffer.c | 32 +++++++++++++++++++++++++++++++
+ 6 files changed, 89 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index b93ef70..cfb8074 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -863,6 +863,12 @@ enum fb_op_origin {
+ 	ORIGIN_DIRTYFB,
+ };
+ 
++/* Flags for the frontbuffer workaround for old user space. */
++#define FB_MMAP_WA_CPU		(1 << 0)
++#define FB_MMAP_WA_GTT		(1 << 1)
++#define FB_MMAP_WA_DISABLE	(1 << 2)
++#define FB_MMAP_WA_FLAG_COUNT	3
++
+ struct intel_fbc {
+ 	/* This is always the inner lock when overlapping with struct_mutex and
+ 	 * it's the outer lock when overlapping with stolen_lock. */
+@@ -900,6 +906,7 @@ struct intel_fbc {
+ 			unsigned int stride;
+ 			int fence_reg;
+ 			unsigned int tiling_mode;
++			unsigned int mmap_wa_flags;
+ 		} fb;
+ 	} state_cache;
+ 
+@@ -2147,6 +2154,7 @@ struct drm_i915_gem_object {
+ 	unsigned int cache_dirty:1;
+ 
+ 	unsigned int frontbuffer_bits:INTEL_FRONTBUFFER_BITS;
++	unsigned int fb_mmap_wa_flags:FB_MMAP_WA_FLAG_COUNT;
+ 
+ 	unsigned int pin_display;
+ 
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index c7a997a..9204054 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -1692,6 +1692,8 @@ i915_gem_sw_finish_ioctl(struct drm_device *dev, void *data,
+ 		goto unlock;
+ 	}
+ 
++	intel_fb_obj_mmap_wa(obj, FB_MMAP_WA_DISABLE);
++
+ 	/* Pinned buffers may be scanout, so flush the cache */
+ 	if (obj->pin_display)
+ 		i915_gem_object_flush_cpu_write_domain(obj);
+@@ -1724,7 +1726,7 @@ i915_gem_mmap_ioctl(struct drm_device *dev, void *data,
+ 		    struct drm_file *file)
+ {
+ 	struct drm_i915_gem_mmap *args = data;
+-	struct drm_gem_object *obj;
++	struct drm_i915_gem_object *obj;
+ 	unsigned long addr;
+ 
+ 	if (args->flags & ~(I915_MMAP_WC))
+@@ -1733,19 +1735,19 @@ i915_gem_mmap_ioctl(struct drm_device *dev, void *data,
+ 	if (args->flags & I915_MMAP_WC && !cpu_has_pat)
+ 		return -ENODEV;
+ 
+-	obj = drm_gem_object_lookup(dev, file, args->handle);
+-	if (obj == NULL)
++	obj = to_intel_bo(drm_gem_object_lookup(dev, file, args->handle));
++	if (&obj->base == NULL)
+ 		return -ENOENT;
+ 
+ 	/* prime objects have no backing filp to GEM mmap
+ 	 * pages from.
+ 	 */
+-	if (!obj->filp) {
+-		drm_gem_object_unreference_unlocked(obj);
++	if (!obj->base.filp) {
++		drm_gem_object_unreference_unlocked(&obj->base);
+ 		return -EINVAL;
+ 	}
+ 
+-	addr = vm_mmap(obj->filp, 0, args->size,
++	addr = vm_mmap(obj->base.filp, 0, args->size,
+ 		       PROT_READ | PROT_WRITE, MAP_SHARED,
+ 		       args->offset);
+ 	if (args->flags & I915_MMAP_WC) {
+@@ -1761,10 +1763,12 @@ i915_gem_mmap_ioctl(struct drm_device *dev, void *data,
+ 			addr = -ENOMEM;
+ 		up_write(&mm->mmap_sem);
+ 	}
+-	drm_gem_object_unreference_unlocked(obj);
++	drm_gem_object_unreference_unlocked(&obj->base);
+ 	if (IS_ERR((void *)addr))
+ 		return addr;
+ 
++	intel_fb_obj_mmap_wa(obj, FB_MMAP_WA_CPU);
++
+ 	args->addr_ptr = (uint64_t) addr;
+ 
+ 	return 0;
+@@ -2099,6 +2103,7 @@ i915_gem_mmap_gtt(struct drm_file *file,
+ 		goto out;
+ 
+ 	*offset = drm_vma_node_offset_addr(&obj->base.vma_node);
++	intel_fb_obj_mmap_wa(obj, FB_MMAP_WA_GTT);
+ 
+ out:
+ 	drm_gem_object_unreference(&obj->base);
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index 29aa64b..da77826 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -14597,6 +14597,7 @@ static int intel_user_framebuffer_dirty(struct drm_framebuffer *fb,
+ 	struct drm_i915_gem_object *obj = intel_fb->obj;
+ 
+ 	mutex_lock(&dev->struct_mutex);
++	intel_fb_obj_mmap_wa(obj, FB_MMAP_WA_DISABLE);
+ 	intel_fb_obj_flush(obj, false, ORIGIN_DIRTYFB);
+ 	mutex_unlock(&dev->struct_mutex);
+ 
+diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
+index c87b450..a0b49ec 100644
+--- a/drivers/gpu/drm/i915/intel_drv.h
++++ b/drivers/gpu/drm/i915/intel_drv.h
+@@ -1085,6 +1085,7 @@ void intel_frontbuffer_flip_complete(struct drm_device *dev,
+ 				     unsigned frontbuffer_bits);
+ void intel_frontbuffer_flip(struct drm_device *dev,
+ 			    unsigned frontbuffer_bits);
++void intel_fb_obj_mmap_wa(struct drm_i915_gem_object *obj, unsigned int flags);
+ unsigned int intel_fb_align_height(struct drm_device *dev,
+ 				   unsigned int height,
+ 				   uint32_t pixel_format,
+@@ -1377,6 +1378,8 @@ void intel_fbc_invalidate(struct drm_i915_private *dev_priv,
+ 			  enum fb_op_origin origin);
+ void intel_fbc_flush(struct drm_i915_private *dev_priv,
+ 		     unsigned int frontbuffer_bits, enum fb_op_origin origin);
++void intel_fbc_mmap_wa(struct drm_i915_private *dev_priv,
++		       unsigned int frontbuffer_bits, unsigned int flags);
+ void intel_fbc_cleanup_cfb(struct drm_i915_private *dev_priv);
+ 
+ /* intel_hdmi.c */
+diff --git a/drivers/gpu/drm/i915/intel_fbc.c b/drivers/gpu/drm/i915/intel_fbc.c
+index 7101880..718ac38 100644
+--- a/drivers/gpu/drm/i915/intel_fbc.c
++++ b/drivers/gpu/drm/i915/intel_fbc.c
+@@ -745,6 +745,14 @@ static void intel_fbc_update_state_cache(struct intel_crtc *crtc)
+ 	cache->fb.stride = fb->pitches[0];
+ 	cache->fb.fence_reg = obj->fence_reg;
+ 	cache->fb.tiling_mode = obj->tiling_mode;
++	cache->fb.mmap_wa_flags = obj->fb_mmap_wa_flags;
++}
++
++static bool need_mmap_disable_workaround(struct intel_fbc *fbc)
++{
++	unsigned int flags = fbc->state_cache.fb.mmap_wa_flags;
++
++	return (flags & FB_MMAP_WA_CPU) && !(flags & FB_MMAP_WA_DISABLE);
+ }
+ 
+ static bool intel_fbc_can_activate(struct intel_crtc *crtc)
+@@ -816,6 +824,11 @@ static bool intel_fbc_can_activate(struct intel_crtc *crtc)
+ 		return false;
+ 	}
+ 
++	if (need_mmap_disable_workaround(fbc)) {
++		fbc->no_fbc_reason = "FB is CPU or WC mmapped";
++		return false;
++	}
++
+ 	return true;
+ }
+ 
+@@ -1008,6 +1021,26 @@ out:
+ 	mutex_unlock(&fbc->lock);
+ }
+ 
++void intel_fbc_mmap_wa(struct drm_i915_private *dev_priv,
++		       unsigned int frontbuffer_bits, unsigned int flags)
++{
++	struct intel_fbc *fbc = &dev_priv->fbc;
++
++	if (!fbc_supported(dev_priv))
++		return;
++
++	mutex_lock(&fbc->lock);
++
++	if (fbc->enabled &&
++	    (intel_fbc_get_frontbuffer_bit(fbc) & frontbuffer_bits)) {
++		fbc->state_cache.fb.mmap_wa_flags = flags;
++		if (need_mmap_disable_workaround(fbc))
++			intel_fbc_deactivate(dev_priv);
++	}
++
++	mutex_unlock(&fbc->lock);
++}
++
+ /**
+  * intel_fbc_choose_crtc - select a CRTC to enable FBC on
+  * @dev_priv: i915 device instance
+diff --git a/drivers/gpu/drm/i915/intel_frontbuffer.c b/drivers/gpu/drm/i915/intel_frontbuffer.c
+index ac85357..01483e7 100644
+--- a/drivers/gpu/drm/i915/intel_frontbuffer.c
++++ b/drivers/gpu/drm/i915/intel_frontbuffer.c
+@@ -241,3 +241,35 @@ void intel_frontbuffer_flip(struct drm_device *dev,
+ 
+ 	intel_frontbuffer_flush(dev, frontbuffer_bits, ORIGIN_FLIP);
+ }
++
++/**
++ * intel_fb_obj_mmap_wa - notifies about objects being mmapped
++ * @obj: GEM object being mmapped
++ * @flags: new flags to be set to @obj
++ *
++ * This function gets called whenever an object gets mmapped. Not every user
++ * space application follows the protocol assumed by the frontbuffer tracking
++ * subsystem when it was created, so this mmap notify callback can be used to
++ * completely disable frontbuffer features such as FBC and PSR. Even if at some
++ * point we fix ever user space application, there's still the possibility that
++ * the user may have a new Kernel with the old user space.
++ *
++ * Also notice that there's no munmap API because user space calls munmap()
++ * directly. Even if we had, it probably wouldn't help since munmap() calls are
++ * not common.
++ */
++void intel_fb_obj_mmap_wa(struct drm_i915_gem_object *obj, unsigned int flags)
++{
++	struct drm_i915_private *dev_priv = obj->base.dev->dev_private;
++
++	if (!IS_SKYLAKE(dev_priv))
++		return;
++
++	obj->fb_mmap_wa_flags |= flags;
++
++	if (!obj->frontbuffer_bits)
++		return;
++
++	intel_fbc_mmap_wa(dev_priv, obj->frontbuffer_bits,
++			  obj->fb_mmap_wa_flags);
++}
+-- 
