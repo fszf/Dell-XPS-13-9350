@@ -1,0 +1,111 @@
+diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
+index f2bfca0..a15e617 100644
+--- a/drivers/gpu/drm/i915/intel_dp.c
++++ b/drivers/gpu/drm/i915/intel_dp.c
+@@ -1621,6 +1621,12 @@ found:
+ 	intel_dp_compute_rate(intel_dp, pipe_config->port_clock,
+ 			      &link_bw, &rate_select);
+ 
++	intel_dp->link_bw = link_bw;
++	intel_dp->rate_select = rate_select;
++	intel_dp->lane_count = lane_count;
++	intel_dp->port_clock = pipe_config->port_clock;
++	intel_dp->bpp = bpp;
++
+ 	DRM_DEBUG_KMS("DP link bw %02x rate select %02x lane count %d clock %d bpp %d\n",
+ 		      link_bw, rate_select, pipe_config->lane_count,
+ 		      pipe_config->port_clock, bpp);
+@@ -3828,7 +3834,7 @@ intel_dp_link_down(struct intel_dp *intel_dp)
+ 	intel_dp->DP = DP;
+ }
+ 
+-static bool
++bool
+ intel_dp_get_dpcd(struct intel_dp *intel_dp)
+ {
+ 	struct intel_digital_port *dig_port = dp_to_dig_port(intel_dp);
+diff --git a/drivers/gpu/drm/i915/intel_dp_link_training.c b/drivers/gpu/drm/i915/intel_dp_link_training.c
+index 8888793..1e7f92a 100644
+--- a/drivers/gpu/drm/i915/intel_dp_link_training.c
++++ b/drivers/gpu/drm/i915/intel_dp_link_training.c
+@@ -82,9 +82,43 @@ intel_dp_set_link_train(struct intel_dp *intel_dp,
+ }
+ 
+ static bool
++intel_dp_check_conf(struct intel_dp *intel_dp)
++{
++	if (intel_dp->link_bw != intel_dp->old_link_bw)
++		return false;
++	else if (intel_dp->lane_count != intel_dp->old_lane_count)
++		return false;
++	else if (intel_dp->rate_select != intel_dp->old_rate_select)
++		return false;
++	else if (intel_dp->port_clock != intel_dp->old_port_clock)
++		return false;
++	else if (intel_dp->bpp != intel_dp->old_bpp)
++		return false;
++	else
++		return true;
++}
++
++static bool
+ intel_dp_reset_link_train(struct intel_dp *intel_dp,
+ 			uint8_t dp_train_pat)
+ {
++	bool has_dpcd;
++	bool flt_supported = false;
++
++	has_dpcd = intel_dp_get_dpcd(intel_dp);
++
++	if (has_dpcd) {
++		if (intel_dp->dpcd[DP_DPCD_REV] >= 0x11)
++			flt_supported = (intel_dp->dpcd[DP_MAX_DOWNSPREAD] &
++					 DP_NO_AUX_HANDSHAKE_LINK_TRAINING);
++	}
++
++	intel_dp->train_set_valid &= flt_supported;
++	intel_dp->train_set_valid &= intel_dp_check_conf(intel_dp);
++
++	DRM_DEBUG_KMS("fast link training enabled: %s\n",
++		      intel_dp->train_set_valid ? "true" : "false");
++
+ 	if (!intel_dp->train_set_valid)
+ 		memset(intel_dp->train_set, 0, sizeof(intel_dp->train_set));
+ 	intel_dp_set_signal_levels(intel_dp);
+@@ -305,6 +339,11 @@ intel_dp_link_training_channel_equalization(struct intel_dp *intel_dp)
+ 
+ 	if (channel_eq) {
+ 		intel_dp->train_set_valid = true;
++		intel_dp->old_link_bw = intel_dp->link_bw;
++		intel_dp->old_rate_select = intel_dp->rate_select;
++		intel_dp->old_lane_count = intel_dp->lane_count;
++		intel_dp->old_port_clock = intel_dp->port_clock;
++		intel_dp->old_bpp = intel_dp->bpp;
+ 		DRM_DEBUG_KMS("Channel EQ done. DP Training successful\n");
+ 	}
+ }
+diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
+index 1ffd8d5..3d8c8dd 100644
+--- a/drivers/gpu/drm/i915/intel_drv.h
++++ b/drivers/gpu/drm/i915/intel_drv.h
+@@ -745,7 +745,11 @@ struct intel_dp {
+ 	i915_reg_t aux_ch_data_reg[5];
+ 	uint32_t DP;
+ 	int link_rate;
+-	uint8_t lane_count;
++	uint8_t lane_count, old_lane_count;
++	uint8_t link_bw, old_link_bw;
++	uint8_t rate_select, old_rate_select;
++	int port_clock, old_port_clock;
++	int bpp, old_bpp;
+ 	bool has_audio;
+ 	enum hdmi_force_audio force_audio;
+ 	bool limited_color_range;
+@@ -1235,6 +1239,7 @@ int intel_dp_sink_crc(struct intel_dp *intel_dp, u8 *crc);
+ bool intel_dp_compute_config(struct intel_encoder *encoder,
+ 			     struct intel_crtc_state *pipe_config);
+ bool intel_dp_is_edp(struct drm_device *dev, enum port port);
++bool intel_dp_get_dpcd(struct intel_dp *intel_dp);
+ enum irqreturn intel_dp_hpd_pulse(struct intel_digital_port *intel_dig_port,
+ 				  bool long_hpd);
+ void intel_edp_backlight_on(struct intel_dp *intel_dp);
