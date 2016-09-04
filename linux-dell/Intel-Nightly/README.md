@@ -1,4 +1,5 @@
-This is the compiled snapshots of the Intel Nightly branch.  
+This is the compiled snapshots of the Intel Nightly branch. 
+Please visit https://github.com/frank604/Intel-DRM-Nightly if you wish to compile yourself
 
 ###Shasum values
 51800d05f5c37485f052369373af11a2ade9c12d  linux-drm-intel-nightly-20160607-1-x86_64.pkg.tar.xz
