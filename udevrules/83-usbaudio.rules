@@ -1,0 +1,1 @@
+KERNEL=="card[1-9]*", SUBSYSTEM=="sound", SUBSYSTEMS=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="4014", SYMLINK+="usbaudiowd15", RUN+="/home/frank604/src/scripts/usbpulsesink"
